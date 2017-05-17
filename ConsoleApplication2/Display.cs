@@ -8,14 +8,14 @@ namespace Tetris
 {
     class Display
     {
-        public static void ShowInfos(int[,] grid, int level, int score, int linesCleared)
+        public static void ShowInfos()
         {
-            Console.SetCursorPosition(grid.GetLength(1) * 2 + 5, 0);
-            Console.WriteLine("Level " + level);
-            Console.SetCursorPosition(grid.GetLength(1) * 2 + 5, 1);
-            Console.WriteLine("Score " + score);
-            Console.SetCursorPosition(grid.GetLength(1) * 2 + 5, 2);
-            Console.WriteLine("LinesCleared " + linesCleared);
+            Console.SetCursorPosition(Program.grid.GetLength(1) * 2 + 5, 0);
+            Console.WriteLine("Level " + Program.level);
+            Console.SetCursorPosition(Program.grid.GetLength(1) * 2 + 5, 1);
+            Console.WriteLine("Score " + Program.score);
+            Console.SetCursorPosition(Program.grid.GetLength(1) * 2 + 5, 2);
+            Console.WriteLine("LinesCleared " + Program.linesCleared);
         }
         public static void PressAnyKey()
         {
@@ -32,17 +32,17 @@ namespace Tetris
                 return true;
             else return false;
         }
-        public static void DrawShape(int [,] grid, int [,] droppedtetrominoeLocationGrid, string SQR)
+        public static void DrawShape()
         {
-            for (int i = 0; i < grid.GetLength(0); ++i)
+            for (int i = 0; i < Program.grid.GetLength(0); ++i)
             {
-                for (int j = 0; j < grid.GetLength(1); j++)
+                for (int j = 0; j < Program.grid.GetLength(1); j++)
                 {
                     Console.SetCursorPosition(1 + 2 * j, i);
-                    if (grid[i, j] == 1 | droppedtetrominoeLocationGrid[i, j] == 1)
+                    if (Program.grid[i, j] == 1 | Program.droppedtetrominoeLocationGrid[i, j] == 1)
                     {
                         Console.SetCursorPosition(1 + 2 * j, i);
-                        Console.Write(SQR);
+                        Console.Write(Program.SQR);
                     }
                     else
                     {
@@ -52,17 +52,17 @@ namespace Tetris
 
             }
         }
-        public static void DrawBoard(int[,] grid)
+        public void DrawBoard()
         {
-            for (int lengthCount = 0; lengthCount <= grid.GetLength(0); ++lengthCount)
+            for (int lengthCount = 0; lengthCount <= Program.grid.GetLength(0); ++lengthCount)
             {
                 Console.SetCursorPosition(0, lengthCount);
                 Console.Write("*");
-                Console.SetCursorPosition(grid.GetLength(1) * 2 + 1, lengthCount);
+                Console.SetCursorPosition(Program.grid.GetLength(1) * 2 + 1, lengthCount);
                 Console.Write("*");
             }
-            Console.SetCursorPosition(0, grid.GetLength(0));
-            for (int widthCount = 0; widthCount <= grid.GetLength(1); widthCount++)
+            Console.SetCursorPosition(0, Program.grid.GetLength(0));
+            for (int widthCount = 0; widthCount <= Program.grid.GetLength(1); widthCount++)
             {
                 Console.Write("*-");
             }
