@@ -9,42 +9,105 @@ using System.Media;
 using System.Resources;
 using System.IO;
 using System.Reflection;
-
 namespace Tetris
 {
-    static class Program
+    class Program
     {
+        //consts
+        public const string SQR = "■";
+        
         //public
-
-        public static string SQR = "■";
         public static int[,] grid = new int[23, 10];
         public static int[,] droppedtetrominoeLocationGrid = new int[grid.GetLength(0), grid.GetLength(1)];
         public static ConsoleKeyInfo key;
         public static bool isDropped = false;
+        public static int linesCleared = 0, score = 0, level = 1;
 
         //default
-        static Tetrominoe tet;
-        static Tetrominoe nexttet;
+        static Shape currentShapeObject = null;
+        static Shape nextShapeObject = null;
+        static Random random = new Random();
 
         //private
         private static Stopwatch dropTimer = new Stopwatch();
         private static int dropTime, dropRate = 300;
-        private static int linesCleared = 0, score = 0, level = 1;
         private static bool isKeyPressed = false;
 
-        static void Main()
+        public static void Main()
         {
-            Display.DrawBoard(grid);
+            Display display = new Display();
+            display.DrawBoard();
             GameStart();
-            Display.ShowInfos(grid, level, score, linesCleared);
+            Display.ShowInfos();
             Update();
             PromptStart();
+        }
+        private static void Update()
+        {
+            while (true)//Update Loop
+            {
+                dropTime = (int)dropTimer.ElapsedMilliseconds;
+
+                if (dropTime > dropRate)
+                {
+                    dropTime = 0;
+                    dropTimer.Restart();
+                    currentShapeObject.Drop();
+                }
+                if (isDropped == true)
+                {
+                    NextPiece();
+                    isDropped = false;
+                }
+
+                for (int j = 0; j < grid.GetLength(1); j++)
+                {
+                    if (droppedtetrominoeLocationGrid[0, j] == 1)
+                        return;
+                }
+                Input();
+                CheckClear();
+            } //end Update
+        }
+        private static void Input()
+        {
+            if (Console.KeyAvailable)
+            {
+                key = Console.ReadKey();
+                isKeyPressed = true;
+                Debug.Assert(isKeyPressed == true, "false");
+            }
+            else
+                isKeyPressed = false;
+            if (isKeyPressed)
+            {
+                if (Program.key.Key == ConsoleKey.LeftArrow & !currentShapeObject.isSomethingDir(0,-1))
+                    MoveDir(-1);
+                else if (Program.key.Key == ConsoleKey.RightArrow & !currentShapeObject.isSomethingDir(Program.grid.GetLength(1)-1, 1))
+                    MoveDir(1);
+                if (Program.key.Key == ConsoleKey.DownArrow)
+                    currentShapeObject.Drop();
+                if (Program.key.Key == ConsoleKey.Spacebar)
+                {
+                    for (; currentShapeObject.isSomethingBelow() != true; )
+                    {
+                        currentShapeObject.Drop();
+                    }
+                    Debug.Assert(isDropped == false, "shape is dropped");
+                }
+                if (Program.key.Key == ConsoleKey.UpArrow)
+                {
+                    currentShapeObject.Rotate();
+                    currentShapeObject.Update();
+                }
+            }
+
         }
         private static void GameStart()
         {
             Display.PressAnyKey();
             dropTimer.Start();
-            nexttet = new Tetrominoe();
+            nextShapeObject = Shape.tetrominoes[random.Next(0, Shape.tetrominoes.Length)];
             NextPiece();
         }
         private static void PromptStart()
@@ -66,45 +129,6 @@ namespace Tetris
             GC.Collect();
             Console.Clear();
             Main();
-        }
-
-        private static void Update()
-        {
-            while (true)//Update Loop
-            {
-                dropTime = (int)dropTimer.ElapsedMilliseconds;
-                
-                if (dropTime > dropRate)
-                {
-                    dropTime = 0;
-                    dropTimer.Restart();
-                    tet.Drop();
-                }
-                if (isDropped == true)
-                {
-                    NextPiece();
-                    isDropped = false;
-                }
-                
-                for (int j = 0; j < grid.GetLength(1); j++)
-                {
-                    if (droppedtetrominoeLocationGrid[0, j] == 1)
-                        return;
-                }
-                Input();
-                CheckClear();
-            } //end Update
-        }
-        private static void ClearBlock(int column, int row, int combo)
-        {
-            if (combo > 0)
-            {
-                ScoreCount(combo);
-                LevelCheck();
-                Display.ShowInfos(grid, level, score, linesCleared);
-            }
-            dropRate = 300 - 22 * level;
-
         }
         private static void CheckClear()
         {
@@ -145,10 +169,34 @@ namespace Tetris
                         for (int l = 0; l < grid.GetLength(1); l++)
                             if (newdroppedtetrominoeLocationGrid[k, l] == 1)
                                 droppedtetrominoeLocationGrid[k, l] = 1;
-                    Display.DrawShape(grid, droppedtetrominoeLocationGrid, SQR);
+                    Display.DrawShape();
                 }
             }
             ClearBlock(0, 0, combo);
+        }
+        private static void ClearBlock(int column, int row, int combo)
+        {
+            if (combo > 0)
+            {
+                ScoreCount(combo);
+                LevelCheck();
+                Display.ShowInfos();
+            }
+            dropRate = 300 - 22 * level;
+            Debug.Assert(0<300 - 22 * level, "droprate is negative");
+            
+        }
+        private static void ScoreCount(int combo)
+        {
+            if (combo == 1)
+                score += 40;
+            else if (combo == 2)
+                score += 100;
+            else if (combo == 3)
+                score += 300;
+            else if (combo > 3)
+                score += 300 * combo / 2;
+
         }
         private static void LevelCheck()
         {
@@ -162,75 +210,45 @@ namespace Tetris
             else if (linesCleared < 90) level = 8;
             else if (linesCleared < 110) level = 9;
             else if (linesCleared < 150) level = 10;
-        }
-        private static void ScoreCount(int combo)
-        {
-            if (combo == 1)
-                score += 40 ;
-            else if (combo == 2)
-                score += 100 ;
-            else if (combo == 3)
-                score += 300 ;
-            else if (combo > 3)
-                score += 300 * combo / 2 ;
-
-        }
-        private static void Input()
-        {
-            if (Console.KeyAvailable)
-            {
-                key = Console.ReadKey();
-                isKeyPressed = true;
-            }
-            else
-                isKeyPressed = false;
-            if (isKeyPressed)
-            {
-                if (Program.key.Key == ConsoleKey.LeftArrow & !tet.isSomethingLeft())
-                    MoveLeft();
-                else if (Program.key.Key == ConsoleKey.RightArrow & !tet.isSomethingRight())
-                    MoveRight();
-                if (Program.key.Key == ConsoleKey.DownArrow)
-                    tet.Drop();
-                if (Program.key.Key == ConsoleKey.Spacebar)
-                {
-                    for (; tet.isSomethingBelow() != true; )
-                    {
-                        tet.Drop();
-                    }
-                }
-                if (Program.key.Key == ConsoleKey.UpArrow)
-                {
-                    tet.Rotate();
-                    tet.Update();
-                }
-            }
-            
+            Debug.Assert(linesCleared < 150, "Level wont increase");
         }
         private static void NextPiece()
         {
-            tet = nexttet;
-            nexttet = new Tetrominoe();
-            tet.Spawn();
+            try
+            {
+                currentShapeObject = nextShapeObject;
+            }
+            catch(NullReferenceException e)
+            {
+                Console.WriteLine(e+" shape is null");
+            }
+            try
+            {
+                nextShapeObject = Shape.tetrominoes[random.Next(0, Shape.tetrominoes.Length)];
+            }
+            catch (NullReferenceException e)
+            {
+                Console.WriteLine(e+" next shape is null");
+            }
+            currentShapeObject.Spawn();
+        }
+        private static void MoveDir(int dir)
+        {
+            try
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    currentShapeObject.location[i][1] += dir;
+                }
+
+            }
+            catch(IndexOutOfRangeException e)
+            {
+                Console.WriteLine(e + " is out of range");
+            }
+            currentShapeObject.Update();
         }
 
-
-        public static void MoveLeft()
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                tet.location[i][1] -= 1;
-            }
-            tet.Update();
-        }
-        public static void MoveRight()
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                tet.location[i][1] += 1;
-            }
-            tet.Update();
-        }
     }
 
 }

@@ -42,6 +42,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Display.cs" />
+    <Compile Include="Shape.cs" />
+    <Compile Include="ShapeI.cs" />
+    <Compile Include="ShapeJ.cs" />
+    <Compile Include="ShapeL.cs" />
+    <Compile Include="ShapeO.cs" />
+    <Compile Include="ShapeS.cs" />
+    <Compile Include="ShapeT.cs" />
+    <Compile Include="ShapeZ.cs" />
     <Compile Include="Tetrominoe.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
