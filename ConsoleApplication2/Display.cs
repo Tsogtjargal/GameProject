@@ -8,6 +8,16 @@ namespace Tetris
 {
     class Display
     {
+        public static void ClearBoard()
+        {
+            for (int i = 0; i < Program.grid.GetLength(0); i++)
+            {
+                for (int j = 0; j < Program.grid.GetLength(1); j++)
+                {
+                    Program.grid[i, j] = 0;
+                }
+            }
+        }
         public static void ShowInfos()
         {
             Console.SetCursorPosition(Program.grid.GetLength(1) * 2 + 5, 0);

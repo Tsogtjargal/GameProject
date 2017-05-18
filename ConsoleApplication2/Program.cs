@@ -9,28 +9,28 @@ using System.Media;
 using System.Resources;
 using System.IO;
 using System.Reflection;
-
 namespace Tetris
 {
     class Program
     {
+        //consts
+        public const string SQR = "■";
+        
         //public
-        public static string SQR = "■";
-        public static int[,] grid = new int[23, 10];
+        public static int[,] grid = new int[23, 11];
         public static int[,] droppedtetrominoeLocationGrid = new int[grid.GetLength(0), grid.GetLength(1)];
         public static ConsoleKeyInfo key;
         public static bool isDropped = false;
         public static int linesCleared = 0, score = 0, level = 1;
+
+        //default
         static Shape currentShapeObject = null;
         static Shape nextShapeObject = null;
         static Random random = new Random();
-        //static int[,] currentShapeMassive;
-        //static int[,] nextShapeMassive;
 
         //private
         private static Stopwatch dropTimer = new Stopwatch();
         private static int dropTime, dropRate = 300;
-        
         private static bool isKeyPressed = false;
 
         public static void Main()
@@ -41,6 +41,65 @@ namespace Tetris
             Display.ShowInfos();
             Update();
             PromptStart();
+        }
+        private static void Update()
+        {
+            while (true)//Update Loop
+            {
+                dropTime = (int)dropTimer.ElapsedMilliseconds;
+
+                if (dropTime > dropRate)
+                {
+                    dropTime = 0;
+                    dropTimer.Restart();
+                    currentShapeObject.Drop();
+                }
+                if (isDropped == true)
+                {
+                    NextPiece();
+                    isDropped = false;
+                }
+
+                for (int j = 0; j < grid.GetLength(1); j++)
+                {
+                    if (droppedtetrominoeLocationGrid[0, j] == 1)
+                        return;
+                }
+                Input();
+                CheckClear();
+            } //end Update
+        }
+        private static void Input()
+        {
+            if (Console.KeyAvailable)
+            {
+                key = Console.ReadKey();
+                isKeyPressed = true;
+            }
+            else
+                isKeyPressed = false;
+            if (isKeyPressed)
+            {
+                if (Program.key.Key == ConsoleKey.LeftArrow & !currentShapeObject.isSomethingDir(0,-1))
+                    MoveLeft();
+                else if (Program.key.Key == ConsoleKey.RightArrow & !currentShapeObject.isSomethingDir(Program.grid.GetLength(1)-1, 1))
+                    MoveRight();
+                if (Program.key.Key == ConsoleKey.DownArrow)
+                    currentShapeObject.Drop();
+                if (Program.key.Key == ConsoleKey.Spacebar)
+                {
+                    for (; currentShapeObject.isSomethingBelow() != true; )
+                    {
+                        currentShapeObject.Drop();
+                    }
+                }
+                if (Program.key.Key == ConsoleKey.UpArrow)
+                {
+                    currentShapeObject.Rotate();
+                    currentShapeObject.Update();
+                }
+            }
+
         }
         private static void GameStart()
         {
@@ -68,45 +127,6 @@ namespace Tetris
             GC.Collect();
             Console.Clear();
             Main();
-        }
-
-        private static void Update()
-        {
-            while (true)//Update Loop
-            {
-                dropTime = (int)dropTimer.ElapsedMilliseconds;
-                
-                if (dropTime > dropRate)
-                {
-                    dropTime = 0;
-                    dropTimer.Restart();
-                    currentShapeObject.Drop();
-                }
-                if (isDropped == true)
-                {
-                    NextPiece();
-                    isDropped = false;
-                }
-                
-                for (int j = 0; j < grid.GetLength(1); j++)
-                {
-                    if (droppedtetrominoeLocationGrid[0, j] == 1)
-                        return;
-                }
-                Input();
-                CheckClear();
-            } //end Update
-        }
-        private static void ClearBlock(int column, int row, int combo)
-        {
-            if (combo > 0)
-            {
-                ScoreCount(combo);
-                LevelCheck();
-                Display.ShowInfos();
-            }
-            dropRate = 300 - 22 * level;
-
         }
         private static void CheckClear()
         {
@@ -152,6 +172,28 @@ namespace Tetris
             }
             ClearBlock(0, 0, combo);
         }
+        private static void ClearBlock(int column, int row, int combo)
+        {
+            if (combo > 0)
+            {
+                ScoreCount(combo);
+                LevelCheck();
+                Display.ShowInfos();
+            }
+            dropRate = 300 - 22 * level;
+        }
+        private static void ScoreCount(int combo)
+        {
+            if (combo == 1)
+                score += 40;
+            else if (combo == 2)
+                score += 100;
+            else if (combo == 3)
+                score += 300;
+            else if (combo > 3)
+                score += 300 * combo / 2;
+
+        }
         private static void LevelCheck()
         {
             if (linesCleared < 5) level = 1;
@@ -165,64 +207,12 @@ namespace Tetris
             else if (linesCleared < 110) level = 9;
             else if (linesCleared < 150) level = 10;
         }
-        private static void ScoreCount(int combo)
-        {
-            if (combo == 1)
-                score += 40 ;
-            else if (combo == 2)
-                score += 100 ;
-            else if (combo == 3)
-                score += 300 ;
-            else if (combo > 3)
-                score += 300 * combo / 2 ;
-
-        }
-        private static void Input()
-        {
-            if (Console.KeyAvailable)
-            {
-                key = Console.ReadKey();
-                isKeyPressed = true;
-            }
-            else
-                isKeyPressed = false;
-            if (isKeyPressed)
-            {
-                if (Program.key.Key == ConsoleKey.LeftArrow & !currentShapeObject.isSomethingLeft())
-                    MoveLeft();
-                else if (Program.key.Key == ConsoleKey.RightArrow & !currentShapeObject.isSomethingRight())
-                    MoveRight();
-                if (Program.key.Key == ConsoleKey.DownArrow)
-                    currentShapeObject.Drop();
-                if (Program.key.Key == ConsoleKey.Spacebar)
-                {
-                    for (; currentShapeObject.isSomethingBelow() != true; )
-                    {
-                        currentShapeObject.Drop();
-                    }
-                }
-                if (Program.key.Key == ConsoleKey.UpArrow)
-                {
-                    currentShapeObject.Rotate();
-                    currentShapeObject.Update();
-                }
-            }
-            
-        }
         private static void NextPiece()
         {
-            //nextShapeObject = Shape.tetrominoes[0];
-            //nextShapeMassive = nextShapeObject.shape;
             currentShapeObject = nextShapeObject;
-            //currentShapeMassive = nextShapeMassive ;
-            int rand = random.Next(0, Shape.tetrominoes.Length);
-
-            nextShapeObject = Shape.tetrominoes[rand];
+            nextShapeObject = Shape.tetrominoes[random.Next(0, Shape.tetrominoes.Length)];
             currentShapeObject.Spawn();
-
         }
-
-
         private static void MoveLeft()
         {
             for (int i = 0; i < 4; i++)
