@@ -17,7 +17,7 @@ namespace Tetris
         public const string SQR = "■";
         
         //public
-        public static int[,] grid = new int[23, 11];
+        public static int[,] grid = new int[23, 10];
         public static int[,] droppedtetrominoeLocationGrid = new int[grid.GetLength(0), grid.GetLength(1)];
         public static ConsoleKeyInfo key;
         public static bool isDropped = false;
@@ -75,15 +75,16 @@ namespace Tetris
             {
                 key = Console.ReadKey();
                 isKeyPressed = true;
+                Debug.Assert(isKeyPressed == true, "false");
             }
             else
                 isKeyPressed = false;
             if (isKeyPressed)
             {
                 if (Program.key.Key == ConsoleKey.LeftArrow & !currentShapeObject.isSomethingDir(0,-1))
-                    MoveLeft();
+                    MoveDir(-1);
                 else if (Program.key.Key == ConsoleKey.RightArrow & !currentShapeObject.isSomethingDir(Program.grid.GetLength(1)-1, 1))
-                    MoveRight();
+                    MoveDir(1);
                 if (Program.key.Key == ConsoleKey.DownArrow)
                     currentShapeObject.Drop();
                 if (Program.key.Key == ConsoleKey.Spacebar)
@@ -92,6 +93,7 @@ namespace Tetris
                     {
                         currentShapeObject.Drop();
                     }
+                    Debug.Assert(isDropped == false, "shape is dropped");
                 }
                 if (Program.key.Key == ConsoleKey.UpArrow)
                 {
@@ -181,6 +183,8 @@ namespace Tetris
                 Display.ShowInfos();
             }
             dropRate = 300 - 22 * level;
+            Debug.Assert(0<300 - 22 * level, "droprate is negative");
+            
         }
         private static void ScoreCount(int combo)
         {
@@ -206,29 +210,45 @@ namespace Tetris
             else if (linesCleared < 90) level = 8;
             else if (linesCleared < 110) level = 9;
             else if (linesCleared < 150) level = 10;
+            Debug.Assert(linesCleared < 150, "Level wont increase");
         }
         private static void NextPiece()
         {
-            currentShapeObject = nextShapeObject;
-            nextShapeObject = Shape.tetrominoes[random.Next(0, Shape.tetrominoes.Length)];
+            try
+            {
+                currentShapeObject = nextShapeObject;
+            }
+            catch(NullReferenceException e)
+            {
+                Console.WriteLine(e+" shape is null");
+            }
+            try
+            {
+                nextShapeObject = Shape.tetrominoes[random.Next(0, Shape.tetrominoes.Length)];
+            }
+            catch (NullReferenceException e)
+            {
+                Console.WriteLine(e+" next shape is null");
+            }
             currentShapeObject.Spawn();
         }
-        private static void MoveLeft()
+        private static void MoveDir(int dir)
         {
-            for (int i = 0; i < 4; i++)
+            try
             {
-                currentShapeObject.location[i][1] -= 1;
+                for (int i = 0; i < 4; i++)
+                {
+                    currentShapeObject.location[i][1] += dir;
+                }
+
+            }
+            catch(IndexOutOfRangeException e)
+            {
+                Console.WriteLine(e + " is out of range");
             }
             currentShapeObject.Update();
         }
-        private static void MoveRight()
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                currentShapeObject.location[i][1] += 1;
-            }
-            currentShapeObject.Update();
-        }
+
     }
 
 }

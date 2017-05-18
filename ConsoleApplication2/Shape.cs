@@ -27,7 +27,6 @@ namespace Tetris
             {
                 templocation[i] = TransformMatrix(location[i], location[2], "Clockwise");
             }
-            
             for (int count = 0; isOverlayDir(templocation, 'l') != false | isOverlayDir(templocation, 'r') != false | isOverlayBelow(templocation) != false; count++)
             {
                 templocation = LocationChange(templocation);
@@ -47,7 +46,7 @@ namespace Tetris
                 {
                     if (shape[i, j] == 1)
                     {
-                        location.Add(new int[] { i, (10 - shape.GetLength(1)) / 2 + j });
+                        location.Add(new int[] { i, (shape.GetLength(1) - shape.GetLength(1)) / 2 + j });
                     }
                 }
             }
@@ -86,9 +85,9 @@ namespace Tetris
         {
             for (int i = 0; i < 4; i++)
             {
-                if (location[i][0] + 1 >= 23)
+                if (location[i][0] + 1 >= Program.grid.GetLength(0))
                     return true;
-                if (location[i][0] + 1 < 23)
+                if (location[i][0] + 1 < Program.grid.GetLength(0))
                 {
                     if (Program.droppedtetrominoeLocationGrid[location[i][0] + 1, location[i][1]] == 1)
                     {
@@ -238,7 +237,7 @@ namespace Tetris
                 {
                     if (shape[i, j] == 1)
                     {
-                        templocation.Add(new int[] { i, (10 - shape.GetLength(1)) / 2 + j });
+                        templocation.Add(new int[] { i, (shape.GetLength(1) - shape.GetLength(1)) / 2 + j });
                     }
                 }
             }
